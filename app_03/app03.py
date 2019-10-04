@@ -3,18 +3,20 @@ import numpy as np
 import pandas as pd
 
 st.title("App no. 3")
-"## Playing around with charts and data"
+"## Playing with charts"
 
 chart_data = pd.DataFrame(
-    np.random.randn(200,3),
+    np.random.randn(20,3),
     columns = ['col1', 'col2', 'col3']
 )
 
 "### Line chart "
 "Printing the chart table"
-chart_data
+st.dataframe(chart_data, width = 500)
 
-st.line_chart(chart_data)
+st.line_chart(chart_data, height = 0)
+st.area_chart(chart_data)
+st.bar_chart(chart_data)
 
 # Using st.map()
 map_data = pd.DataFrame(
@@ -23,5 +25,6 @@ map_data = pd.DataFrame(
 )
 
 " ### Checking out a map"
-map_data
+"Using the st.dataframe function. Changing the default height."
+st.dataframe(map_data, height = 1000)
 st.map(map_data)

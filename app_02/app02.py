@@ -27,4 +27,4 @@ df
 
 13
 "The above was a literal value. i.e 13 was just written."
-"Both this and the above are literal strings placed in the script! This is actually quite handy, but it does not appear to be good programming practice, i.e more useful for quick demonstrations and notes."
+"Both this and the above are literal strings placed in the script! This is actually quite handy, but it does not appear to be good programming practice, i.e more useful for quick demonstrations and notes. Particularly, this works with Python 3 only atm."

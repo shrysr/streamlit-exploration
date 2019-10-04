@@ -60,20 +60,25 @@ This is similar to using reactive functions in shiny, which control when the scr
 
 Since the streamlit server is watching only the current working directory and the cache is built by running the function for the first time - a change in an external data source will not be detected by the cache.
 
+* Running these apps
 
-* Official tutorials
+After installing the streamlit library, and cloning this repository, each app below can be run by using the =streamlit run= command pointing towards the python script.
 
-This section will implement the official code snippets and tutorials, along with my own explorations along the way.
+#+BEGIN_SRC sh
+streamlit run <path to repository>/streamlit-exploration/app01/app01.py
+#+END_SRC
 
-** Getting started [[https://streamlit.io/docs/getting_started.html][link]]
-:PROPERTIES:
-:ID:       75ebc67e-bf3a-4269-9dda-625952a3bce6
-:END:
 
-*** [[./app_01/][App 01]] - Hello world
+* Apps
+
+This section will contain all the apps created using streamlit. It starts with implementing the official code snippets and tutorials, along with my own explorations and notes, and will eventually graduate to my own apps.
+
+** [[./app_01/][App 01]] - Hello world
 :PROPERTIES:
 :ID:       f2ea936d-0b8e-46ec-a297-90f4db4c85cf
 :END:
+
+The very first app. "Hello World" !
 
 #+BEGIN_SRC python :mkdirp yes :tangle ./app_01/my_first_st.py
 import streamlit as st
@@ -82,6 +87,7 @@ import pandas
 
 st.title('First app using streamlit')
 st.write('This explores creating a table and adding a title')
+st.write(" ## Hello World")
 
 # Creating a table
 
@@ -92,12 +98,12 @@ st.write(pandas.DataFrame({
 }))
 #+END_SRC
 
-*** [[./app_02/][App 02]] - magic and literal values
+** [[./app_02/][App 02]] - magic and literal values
 :PROPERTIES:
 :ID:       5ce03b9c-d094-4421-acc8-38a3352001fc
 :END:
 
-This app tries out some simple commands, as well as the 'magic' portion, wherein with python 3 wherein it is not necessary to explicitly use =st.write()=.
+This app tries out some simple python commands, as well as the 'magic' portion (works only with python3) wherein it is not necessary to explicitly use =st.write()=.
 
 #+BEGIN_QUOTE
 Any time that Streamlit sees a variable or a literal value on its own line, it automatically writes that to your app using st.write()
@@ -105,7 +111,7 @@ Any time that Streamlit sees a variable or a literal value on its own line, it a
 - Streamlit docs
 #+END_QUOTE
 
-For example, a =print= command will not be translated. However, a literal value - that includes strings will be piped to =st.write()=.
+For example, a =print= command will not be translated. However, a literal value - that includes strings will be piped to =st.write()=. String literals have to be enclosed within quotes. As such, it may not be a good practice to use such literals if the app needs to be compatible across different python versions.
 
 #+BEGIN_SRC python :mkdirp yes :tangle ./app_02/app02.py
 import streamlit as st
@@ -137,17 +143,23 @@ df
 
 13
 "The above was a literal value. i.e 13 was just written."
-"Both this and the above are literal strings placed in the script! This is actually quite handy, but it does not appear to be good programming practice, i.e more useful for quick demonstrations and notes."
+"Both this and the above are literal strings placed in the script! This is actually quite handy, but it does not appear to be good programming practice, i.e more useful for quick demonstrations and notes. Particularly, this works with Python 3 only atm."
 #+END_SRC
 
 #+RESULTS:
 
-*** [[./app_03/][App 03]] - charts and maps
+** [[./app_03/][App 03]] - charts and maps[1/1]
 :PROPERTIES:
 :ID:       a75e8fc0-0eb1-4fb0-bf35-de808f384656
 :END:
 
-This app explores basic plotting functions. Eg: line charts, and plotting a map. =st.line_chart()= and =st.map()=.
+This app explores basic plotting functions. Eg: line, bar, area charts and plotting a map.
+
+- Notice how the charts are somewhat interactive out of the box! i.e - you can zoom, pan etc on the line chart. However, the documentation show a different set of popups.
+- Notice how literal strings can be input directly as markdown. While not entirely convenient to interject that in code for a long document (It's not easy to shift everything under a single heading for example) - it is however extremely helpful for quick notes and headings in a demonstration.
+- [X] About 10 rows of a table seem to be shown by default and the remaining have to accessed with scroll bars.
+  - The height and width can be set as shown below using the =st.dataframe(<data>, width = , height = =)=. The values need to be in pixels. This applies to charts as well.
+  - in the case of width in data frames - higher widths do not seem to work once the data has been 'fit', i.e a table of 2 columns cannot
 
 #+BEGIN_SRC python :mkdirp yes :tangle ./app_03/app03.py
 import streamlit as st
@@ -155,18 +167,20 @@ import numpy as np
 import pandas as pd
 
 st.title("App no. 3")
-"## Playing around with charts and data"
+"## Playing with charts"
 
 chart_data = pd.DataFrame(
-    np.random.randn(200,3),
+    np.random.randn(20,3),
     columns = ['col1', 'col2', 'col3']
 )
 
 "### Line chart "
 "Printing the chart table"
-chart_data
+st.dataframe(chart_data, width = 500)
 
-st.line_chart(chart_data)
+st.line_chart(chart_data, height = 0)
+st.area_chart(chart_data)
+st.bar_chart(chart_data)
 
 # Using st.map()
 map_data = pd.DataFrame(
@@ -175,9 +189,53 @@ map_data = pd.DataFrame(
 )
 
 " ### Checking out a map"
-map_data
+"Using the st.dataframe function. Changing the default height."
+st.dataframe(map_data, height = 1000)
 st.map(map_data)
 #+END_SRC
 
+** App 04
+:PROPERTIES:
+:ID:       5d0e8bd2-abea-47b5-b79d-ab82cae612fd
+:END:
 
-* TODO My exploration
+The tutorial script has been copied verbatim in this app. This will explored and expanded later.
+
+#+BEGIN_SRC python :mkdirp yes :tangle ./app_04/app04.py
+import streamlit as st
+import pandas as pd
+import numpy as np
+
+st.title('Uber pickups in NYC')
+
+DATE_COLUMN = 'date/time'
+DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
+            'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
+
+@st.cache
+def load_data(nrows):
+    data = pd.read_csv(DATA_URL, nrows=nrows)
+    lowercase = lambda x: str(x).lower()
+    data.rename(lowercase, axis='columns', inplace=True)
+    data[DATE_COLUMN] = pd.to_datetime(data[DATE_COLUMN])
+    return data
+
+data_load_state = st.text('Loading data...')
+data = load_data(10000)
+data_load_state.text('Loading data... done!')
+
+if st.checkbox('Show raw data'):
+    st.subheader('Raw data')
+    st.write(data)
+
+st.subheader('Number of pickups by hour')
+hist_values = np.histogram(data[DATE_COLUMN].dt.hour, bins=24, range=(0,24))[0]
+st.bar_chart(hist_values)
+
+# Some number in the range 0-23
+hour_to_filter = st.slider('hour', 0, 23, 15)
+filtered_data = data[data[DATE_COLUMN].dt.hour == hour_to_filter]
+
+st.subheader('Map of all pickups at %s:00' % hour_to_filter)
+st.map(filtered_data)
+#+END_SRC
