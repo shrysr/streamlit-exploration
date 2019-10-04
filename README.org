@@ -1,0 +1,183 @@
+* Introduction
+
+I learned about Streamlit from the [[https://www.datascienceweekly.org/][Data Science Weekly newsletter]], which led to a [[https://techcrunch.com/2019/10/01/streamlit-launches-open-source-machine-learning-application-development-framework/][Techcrunch article]] on Streamlit launching an open source ML application development framework. On first glance, this appears to be quite similar to the shiny library in R, and considering my current foray into python this piqued my interest to explore how it works.
+
+The notes below are my observations, interspersed with references from the documentation, which I have tried to duly reference. This has been constructed in Org mode markup and exported to jupyter notebooks. I'm a long time fan of using Scimax for everything.
+
+I'm always open to hearing constructive feedback.
+
+* Overall plan
+
+1. Start by implementing all the official tutorials
+2. Use Literate programming to make notes in parallel on the exploration procedure followed as well as my notes.
+3. Neatly export each app into a separate folder, so that each app is self-contained.
+4. Figure out how streamlit can be run on a VPS to host my own apps. Possibly deploy with Docker?
+5. Develop functions to streamline the deployment of an app, right from folder creation to other things.
+6. Construct code snippets in Emacs to make it easier to construct a streamlit app quickly.
+
+* Quick Links
+
+Streamlit's official links are placed here for convenient access
+
+- [[https://github.com/streamlit/streamlit][Streamlit github repo]]
+- [[https://streamlit.io/docs/][Documentation]]
+  - [[https://streamlit.io/docs/api.html#magic-commands][Magic commands]]
+- [[https://discuss.streamlit.io/][Community Forum]]
+
+* General notes
+:PROPERTIES:
+:ID:       f22a3742-42ca-469f-8815-8a2e8ecfcb3c
+:END:
+
+[2019-10-04 Fri] Appears that streamlit is not available in standard conda channels.
+
+Streamlit can be installed using pip.
+
+#+BEGIN_SRC sh
+pip install streamlit
+#+END_SRC
+
+#+RESULTS:
+
+If you are familiar with Hugo / Jupyter / Shiny server - running the streamlit server is similar in concept, in this case the streamlit server runs in the background watching the /current working directory/ and re-executes the entire script each time there is a change. This enables viewing what the script does interactively on a web browser.
+
+#+BEGIN_SRC sh
+# To start the streamlit server:
+streamlit hello
+#+END_SRC
+
+For larger or more complex functions, it is not always feasible (i.e fast or efficient) to frequently re-execute the entire script. One way to reduce the frequency is to implement a cache or a store of data related to the function.
+
+#+BEGIN_QUOTE
+- The actual bytecode that makes up the body of the function
+- Code, variables, and files that the function depends on
+- The input parameters that you called the function with
+
+https://streamlit.io/docs/main_concepts.html#caching
+#+END_QUOTE
+
+This is similar to using reactive functions in shiny, which control when the script is re-executed or the app refreshed - in streamlit, data is reused using a cache mechanism (store) called =st.cache=. A function needs to be marked with =st.cache='s annotation. If so - on a first run - the above will be stored in the cache and every time the function is run - the same will be checked, and the data will be fetched only if there is a change.
+
+Since the streamlit server is watching only the current working directory and the cache is built by running the function for the first time - a change in an external data source will not be detected by the cache.
+
+
+* Official tutorials
+
+This section will implement the official code snippets and tutorials, along with my own explorations along the way.
+
+** Getting started [[https://streamlit.io/docs/getting_started.html][link]]
+:PROPERTIES:
+:ID:       75ebc67e-bf3a-4269-9dda-625952a3bce6
+:END:
+
+*** [[./app_01/][App 01]] - Hello world
+:PROPERTIES:
+:ID:       f2ea936d-0b8e-46ec-a297-90f4db4c85cf
+:END:
+
+#+BEGIN_SRC python :mkdirp yes :tangle ./app_01/my_first_st.py
+import streamlit as st
+import numpy
+import pandas
+
+st.title('First app using streamlit')
+st.write('This explores creating a table and adding a title')
+
+# Creating a table
+
+st.write("Creating a table")
+st.write(pandas.DataFrame({
+    'col 1': [100,200,456,678],
+    'col 2': ['a', 'b', 'c', 'd']
+}))
+#+END_SRC
+
+*** [[./app_02/][App 02]] - magic and literal values
+:PROPERTIES:
+:ID:       5ce03b9c-d094-4421-acc8-38a3352001fc
+:END:
+
+This app tries out some simple commands, as well as the 'magic' portion, wherein with python 3 wherein it is not necessary to explicitly use =st.write()=.
+
+#+BEGIN_QUOTE
+Any time that Streamlit sees a variable or a literal value on its own line, it automatically writes that to your app using st.write()
+
+- Streamlit docs
+#+END_QUOTE
+
+For example, a =print= command will not be translated. However, a literal value - that includes strings will be piped to =st.write()=.
+
+#+BEGIN_SRC python :mkdirp yes :tangle ./app_02/app02.py
+import streamlit as st
+import numpy as np
+import pandas as pd
+import sys
+
+# Preamble
+st.title("App No. 2")
+st.write("This app tests simple commands in python")
+
+# Simple commands
+st.write("Printing the python and system version")
+st.write(sys.version_info)
+st.write(sys.version)
+
+# Using magic , similar to the example in the docs
+
+st.write("Trying out magic. This essentially means that any variable or literal value on it's own line is passed to st.write()")
+df = pd.DataFrame({
+    'col 1':['AA', 'BB', 'CC'],
+    'col 2':[1 , 2, 3],
+    'col 3':["this", "is", "col3"]
+})
+
+df
+
+# Testing literal values
+
+13
+"The above was a literal value. i.e 13 was just written."
+"Both this and the above are literal strings placed in the script! This is actually quite handy, but it does not appear to be good programming practice, i.e more useful for quick demonstrations and notes."
+#+END_SRC
+
+#+RESULTS:
+
+*** [[./app_03/][App 03]] - charts and maps
+:PROPERTIES:
+:ID:       a75e8fc0-0eb1-4fb0-bf35-de808f384656
+:END:
+
+This app explores basic plotting functions. Eg: line charts, and plotting a map. =st.line_chart()= and =st.map()=.
+
+#+BEGIN_SRC python :mkdirp yes :tangle ./app_03/app03.py
+import streamlit as st
+import numpy as np
+import pandas as pd
+
+st.title("App no. 3")
+"## Playing around with charts and data"
+
+chart_data = pd.DataFrame(
+    np.random.randn(200,3),
+    columns = ['col1', 'col2', 'col3']
+)
+
+"### Line chart "
+"Printing the chart table"
+chart_data
+
+st.line_chart(chart_data)
+
+# Using st.map()
+map_data = pd.DataFrame(
+    np.random.randn(1000, 2) / [50, 50] + [27.76, -122.4],
+    columns  = ['lat', 'lon']
+)
+
+" ### Checking out a map"
+map_data
+st.map(map_data)
+#+END_SRC
+
+
+* TODO My exploration
