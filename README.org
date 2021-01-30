@@ -239,3 +239,16 @@ filtered_data = data[data[DATE_COLUMN].dt.hour == hour_to_filter]
 st.subheader('Map of all pickups at %s:00' % hour_to_filter)
 st.map(filtered_data)
 #+END_SRC
+** App 05
+
+Overview: This app will implement some simple numpy graphs and calculations and explore user interaction.
+
+#+BEGIN_SRC python
+import streamlit as st
+import pandas as pd
+import numpy.random  as npr
+
+st.title('Implementing simple User interactions and numpy calcs')
+
+
+#+END_SRC
